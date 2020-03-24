@@ -1,39 +1,6 @@
 Ext.onReady(function () {
 
 
-    // var myStore = Ext.create(Ext.data.Json {
-    //     //storeID: 'covidStat',
-    //     autoLoad: true,
-    //     proxy: {
-    //         type: 'ajax',
-    //         url: 'https://covid-19-coronavirus-statistics.p.rapidapi.com/v1/stats',
-    //         headers: {
-    //             "x-rapidapi-host": "covid-19-coronavirus-statistics.p.rapidapi.com",
-    //             "x-rapidapi-key": "8cd8d0f7bbmsh3c7897746993edfp13840ejsn40f673bcd163"
-    //         },
-    //         reader: {
-    //             type: 'json',
-    //             successProperty: 'success',
-    //             root: 'data/covid19Stats'
-    //         }
-
-    //     },
-    //     listeners: {
-    //         load: function () {
-    //             console.log('loaded');
-    //         }
-    //     },
-    //     fields: [
-    //         {},
-    //         {},
-    //         {},
-    //         {},
-    //         {},
-    //         {}
-    //     ]
-    // })
-    // http proxy
-
     var myGrid = Ext.create({
         xtype: 'grid',
         itemId: 'grid',
