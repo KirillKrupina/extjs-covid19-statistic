@@ -37,6 +37,7 @@ Ext.onReady(function () {
     var myGrid = Ext.create({
         xtype: 'grid',
         itemId: 'grid',
+        height: 635,
         store: {
             xtype: 'jsonstore',
             autoLoad: true,
@@ -51,12 +52,46 @@ Ext.onReady(function () {
                 return json.data.covid19Stats;
             },
             fields: [
-                'country','province','lastUpdate','confirmed','deaths','recovered'
+                'country', 'province', 'city', 'lastUpdate',
+                { name: 'confirmed', type: 'int' },
+                { name: 'deaths', type: 'int' },
+                { name: 'recovered', type: 'int' }
             ],
             listeners:
             {
                 load: function () {
-                    console.log('Loaded', arguments)
+                    console.log('Loaded', arguments);
+
+                    var store = myGrid.getStore().data.items;
+                    console.log(store);
+
+                    var confirmedSum = 0;
+                    for (var index = 0; index < store.length; index++) {
+                        confirmedSum += store[index].data.confirmed;
+                    }
+                    console.log('Confirmed', confirmedSum);
+
+                    var recoveredSum = 0;
+                    for (var index = 0; index < store.length; index++) {
+                        recoveredSum += store[index].data.recovered;
+                    }
+                    console.log('Recovered', recoveredSum);
+
+                    var deathsSum = 0;
+                    for (var index = 0; index < store.length; index++) {
+                        deathsSum += store[index].data.deaths;
+                    }
+                    console.log('Deaths', deathsSum);
+
+                    var mortality = (100*deathsSum/(deathsSum + recoveredSum + confirmedSum)).toFixed(2)
+
+
+                    statistic.getForm().setValues({
+                        confirmed: confirmedSum,
+                        recovered: recoveredSum,
+                        deaths: deathsSum,
+                        mortality: mortality + '%'
+                    })
                 }
             }
 
@@ -77,6 +112,13 @@ Ext.onReady(function () {
                 width: 100,
                 sortable: true,
                 dataIndex: 'province'
+            },
+            {
+                id: 'city',
+                header: 'City',
+                width: 150,
+                sortable: true,
+                dataIndex: 'city'
             },
             {
                 id: 'lastUpdate',
@@ -111,12 +153,50 @@ Ext.onReady(function () {
 
 
 
+    var statistic = Ext.create({
+        xtype: 'form',
+        layout: 'form',
+        height: 100,
+        padding: 5,
+        items: [
+            {
+                xtype: 'displayfield',
+                name: 'confirmed',
+                fieldLabel: 'Confirmed',
+                value: 'Confirmed'
+            },
+            {
+                xtype: 'displayfield',
+                name: 'recovered',
+                fieldLabel: 'Recovered',
+                value: 'Recovered'
+            },
+            {
+                xtype: 'displayfield',
+                name: 'deaths',
+                fieldLabel: 'Deaths',
+                value: 'Deaths'
+            },
+            {
+                xtype: 'displayfield',
+                name: 'mortality',
+                fieldLabel: 'Mortality',
+                value: 'Mortality'
+            },
+
+        ]
+    });
+
+
     var win = Ext.create({
         xtype: 'window',
-        width: 700,
-        height: 500,
-        layout: 'fit',
-        items: [myGrid],
+        width: 850,
+        height: 800,
+        layout: '',
+        items: [
+            myGrid,
+            statistic
+        ],
         buttons: [
             {
                 text: 'Reload store',
@@ -129,9 +209,11 @@ Ext.onReady(function () {
                 text: 'Load store',
                 handler: function (button) {
                     myGrid.getStore().load();
+                    
+
                 }
             }
-        ]
+        ],
     })
 
 
