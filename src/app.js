@@ -66,21 +66,15 @@ Ext.onReady(function () {
                     console.log(store);
 
                     var confirmedSum = 0;
-                    for (var index = 0; index < store.length; index++) {
-                        confirmedSum += store[index].data.confirmed;
-                    }
-                    console.log('Confirmed', confirmedSum);
-
                     var recoveredSum = 0;
-                    for (var index = 0; index < store.length; index++) {
-                        recoveredSum += store[index].data.recovered;
-                    }
-                    console.log('Recovered', recoveredSum);
-
                     var deathsSum = 0;
                     for (var index = 0; index < store.length; index++) {
+                        confirmedSum += store[index].data.confirmed;
+                        recoveredSum += store[index].data.recovered;
                         deathsSum += store[index].data.deaths;
                     }
+                    console.log('Confirmed', confirmedSum);
+                    console.log('Recovered', recoveredSum);
                     console.log('Deaths', deathsSum);
 
                     var mortality = (100*deathsSum/(deathsSum + recoveredSum + confirmedSum)).toFixed(2)
