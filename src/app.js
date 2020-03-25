@@ -5,6 +5,7 @@ Ext.onReady(function () {
     var myStore = Ext.create({
         xtype: 'jsonstore',
         autoLoad: true,
+
         proxy: new Ext.data.HttpProxy({
             url: 'https://covid-19-coronavirus-statistics.p.rapidapi.com/v1/stats',
             headers: {
@@ -60,6 +61,8 @@ Ext.onReady(function () {
     myStore.setDefaultSort('country', 'ASC');
 
 
+
+    // Array store!!!
     var myFilter = Ext.create({
         xtype: 'form',
         itemId: 'filter',
@@ -70,16 +73,51 @@ Ext.onReady(function () {
                 xtype: 'combo',
                 name: 'combo',
                 fieldLabel: 'Country',
-                store: myStore,
-                displayfield: 'country',
+                store: {
+                    xtype: 'arraystore',
+                    fields: ['country'],
+                    data: [],
+
+                },
+                displayField: 'country',
                 valueField: 'country',
                 triggerAction: 'all',
                 mode: 'local',
                 listeners: {
                     select: function (field) {
                         console.log(field.value)
+                    },
+                    afterrender: function (combo) {
+                        console.log('Combo/afterrender')
+                        myStore.on('load', function (store, records) {
+                            var countryArray = [];
+                            for (let index = 0; index < records.length; index++) {
+                                /**
+                                 * @type Ext.data.Record record
+                                 */
+                                let record = records[index];
+                                let country = record.get('country');
+                                if (countryArray.indexOf(country) < 0) {
+                                    countryArray.push(country)
+                                }
+                            }
+
+                            var records = [];
+                            for (let index = 0; index < countryArray.length; index++) {
+                                records.push(new Ext.data.Record({
+                                    'country': countryArray[index]
+                                }));
+                            
+                            }
+
+                            // нужно очистить store перед перезагрузкой его. Ибо могут дублироваться данные
+                            combo.getStore().removeAll();
+
+                            // ожидает массив records. Нужно сгенерить отдельно (выше)
+                            combo.getStore().add(records);
+                        }, this);
                     }
-                }
+                },
             },
             {
                 xtype: 'numberfield',
@@ -91,7 +129,10 @@ Ext.onReady(function () {
                 name: 'numberfiledConfirmedTo',
                 fieldLabel: 'Confirmed to'
             }
-        ]
+        ],
+        listeners: {
+
+        }
     })
 
     var myGrid = Ext.create({
@@ -107,7 +148,7 @@ Ext.onReady(function () {
                 header: 'Country',
                 width: 100,
                 sortable: true,
-                dataIndex: 'country'
+                dataIndex: 'country',
             },
             {
                 id: 'province',
@@ -154,7 +195,28 @@ Ext.onReady(function () {
                 sortable: true,
                 dataIndex: 'deaths'
             },
-        ],
+            {
+                id: 'mortality',
+                header: 'Mortality',
+                width: 100,
+                sortable: true,
+                renderer: function (value, metaData, record, rowIndex, colIndex, store) {
+
+                    var deaths = record.get('deaths');
+                    var recovered = record.get('recovered');
+
+                    var fieldMortality = (100 * deaths / (deaths + recovered)).toFixed(2);
+                    if (isNaN(fieldMortality)) {
+                        return 0 + '%';
+                    } else {
+                        return fieldMortality + '%';
+                    }
+
+
+
+                }
+            }
+        ]
     })
 
 
@@ -202,7 +264,7 @@ Ext.onReady(function () {
 
     var win = Ext.create({
         xtype: 'window',
-        width: 850,
+        width: 950,
         height: 900,
         layout: '',
         items: [
