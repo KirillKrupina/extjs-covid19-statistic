@@ -97,6 +97,8 @@ Ext.onReady(function () {
                                  */
                                 let record = records[index];
                                 let country = record.get('country');
+
+                                // Проверяем на дупликаты
                                 if (countryArray.indexOf(country) < 0) {
                                     countryArray.push(country)
                                 }
@@ -107,7 +109,7 @@ Ext.onReady(function () {
                                 records.push(new Ext.data.Record({
                                     'country': countryArray[index]
                                 }));
-                            
+
                             }
 
                             // нужно очистить store перед перезагрузкой его. Ибо могут дублироваться данные
@@ -128,11 +130,47 @@ Ext.onReady(function () {
                 xtype: 'numberfield',
                 name: 'numberfiledConfirmedTo',
                 fieldLabel: 'Confirmed to'
-            }
-        ],
-        listeners: {
+            },
+            {
+                xtype: 'button',
+                text: 'Submit',
+                width: 100,
+                handler: function () {
+                    var country = myFilter.getForm().findField('combo').value;
+                    var numberFrom = myFilter.getForm().findField('numberfiledConfirmedFrom').value;
+                    var numberTo = myFilter.getForm().findField('numberfiledConfirmedTo').value;
 
-        }
+                    store = myGrid.getStore();
+
+                    store.filter([
+                        // {
+                        //     property: 'country',
+                        //     value: country,
+                        //     anyMatch: true, //optional, defaults to true
+                        //     caseSensitive: true  //optional, defaults to true
+                        // }
+                        {
+                            /**
+                             * 
+                             * @param {Ext.data.Record} record 
+                             */
+                            fn: function (record) {
+                                let countryRecord = record.get('country');
+                                let confirmedRecord = record.get('confirmed')
+                                if (country === countryRecord && numberFrom < confirmedRecord && numberTo > confirmedRecord) {
+                                    return true;
+                                } else {
+                                    return false;
+                                }
+                            },
+                            scope: this
+                        }
+                    ]);
+
+
+                }
+            }
+        ]
     })
 
     var myGrid = Ext.create({
@@ -264,6 +302,7 @@ Ext.onReady(function () {
 
     var win = Ext.create({
         xtype: 'window',
+        title: 'COVID-19 Statistic',
         width: 950,
         height: 900,
         layout: '',
