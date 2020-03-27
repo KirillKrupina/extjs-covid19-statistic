@@ -1,7 +1,5 @@
 Ext.onReady(function () {
 
-
-
     var myStore = Ext.create({
         xtype: 'jsonstore',
         autoLoad: true,
@@ -23,6 +21,10 @@ Ext.onReady(function () {
             { name: 'deaths', type: 'int' },
             { name: 'recovered', type: 'int' }
         ],
+        sortInfo: {
+            field: 'country',
+            direction: 'ASC'
+        },
         listeners:
         {
             load: function () {
@@ -58,8 +60,6 @@ Ext.onReady(function () {
             }
         },
     })
-    myStore.setDefaultSort('country', 'ASC');
-
 
 
     // Array store!!!
@@ -156,18 +156,23 @@ Ext.onReady(function () {
                              */
                             fn: function (record) {
                                 let countryRecord = record.get('country');
-                                let confirmedRecord = record.get('confirmed')
-                                if (country === countryRecord && numberFrom < confirmedRecord && numberTo > confirmedRecord) {
-                                    return true;
-                                } else {
-                                    return false;
+                                let confirmedRecord = record.get('confirmed');
+
+                                if (country === undefined) {
+                                    if (numberFrom < confirmedRecord && numberTo > confirmedRecord) { return true }
+                                    if (numberFrom < confirmedRecord || numberTo > confirmedRecord) { return true }
+                                }
+                                if (numberFrom === undefined || numberTo === undefined) {
+                                    if (numberFrom < confirmedRecord && country === countryRecord) { return true }
+                                    if (numberTo > confirmedRecord && country === countryRecord) { return true }
+                                }
+                                if (numberTo === undefined && numberFrom === undefined) {
+                                    if (country === countryRecord) { return true }
                                 }
                             },
                             scope: this
                         }
                     ]);
-
-
                 }
             }
         ]
