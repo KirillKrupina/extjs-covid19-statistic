@@ -16,49 +16,49 @@ Ext.onReady(function () {
         },
         fields: [
             'country', 'province', 'city',
-            { name: 'lastUpdate', type: 'date' },
-            { name: 'confirmed', type: 'int' },
-            { name: 'deaths', type: 'int' },
-            { name: 'recovered', type: 'int' }
+            {name: 'lastUpdate', type: 'date'},
+            {name: 'confirmed', type: 'int'},
+            {name: 'deaths', type: 'int'},
+            {name: 'recovered', type: 'int'}
         ],
         sortInfo: {
             field: 'country',
             direction: 'ASC'
         },
         listeners:
-        {
-            load: function () {
-                console.log('Loaded', arguments);
+            {
+                load: function () {
+                    console.log('Loaded', arguments);
 
-                var store = myGrid.getStore().data.items;
-                console.log(store);
+                    var store = myGrid.getStore().data.items;
+                    console.log(store);
 
-                var confirmedSum = 0;
-                var recoveredSum = 0;
-                var deathsSum = 0;
-                for (var index = 0; index < store.length; index++) {
-                    confirmedSum += store[index].data.confirmed;
-                    recoveredSum += store[index].data.recovered;
-                    deathsSum += store[index].data.deaths;
+                    var confirmedSum = 0;
+                    var recoveredSum = 0;
+                    var deathsSum = 0;
+                    for (var index = 0; index < store.length; index++) {
+                        confirmedSum += store[index].data.confirmed;
+                        recoveredSum += store[index].data.recovered;
+                        deathsSum += store[index].data.deaths;
+                    }
+                    console.log('Confirmed', confirmedSum);
+                    console.log('Recovered', recoveredSum);
+                    console.log('Deaths', deathsSum);
+
+                    var mortalityDeathsRecovered = (100 * deathsSum / (deathsSum + recoveredSum)).toFixed(2)
+                    var mortalityDeathsRecoveredConfirmed = (100 * deathsSum / (deathsSum + recoveredSum + confirmedSum)).toFixed(2)
+
+
+                    statistic.getForm().setValues({
+                        confirmed: confirmedSum,
+                        recovered: recoveredSum,
+                        deaths: deathsSum,
+                        mortalityRec: mortalityDeathsRecovered + '%',
+                        mortalityRecConf: mortalityDeathsRecoveredConfirmed + '%',
+
+                    })
                 }
-                console.log('Confirmed', confirmedSum);
-                console.log('Recovered', recoveredSum);
-                console.log('Deaths', deathsSum);
-
-                var mortalityDeathsRecovered = (100 * deathsSum / (deathsSum + recoveredSum)).toFixed(2)
-                var mortalityDeathsRecoveredConfirmed = (100 * deathsSum / (deathsSum + recoveredSum + confirmedSum)).toFixed(2)
-
-
-                statistic.getForm().setValues({
-                    confirmed: confirmedSum,
-                    recovered: recoveredSum,
-                    deaths: deathsSum,
-                    mortalityRec: mortalityDeathsRecovered + '%',
-                    mortalityRecConf: mortalityDeathsRecoveredConfirmed + '%',
-
-                })
-            }
-        },
+            },
     })
 
 
@@ -79,6 +79,54 @@ Ext.onReady(function () {
                     data: [],
 
                 },
+                triggerConfig: {
+                    tag: 'span', cls: 'x-form-twin-triggers', cn: [
+                        {tag: "img", src: Ext.BLANK_IMAGE_URL, alt: "", cls: "x-form-trigger myTrigger1", index: 1},
+                        {tag: "img", src: Ext.BLANK_IMAGE_URL, alt: "", cls: "x-form-trigger myTrigger2", index: 2}
+                    ],
+
+                },
+
+
+                //------------------------
+
+                initTrigger: function () {
+                    var ts = this.trigger.select('.x-form-trigger', true);
+                    ts.each(function (t, all, index) {
+                        switch (index) {
+
+                            case 0:
+                                this.mon(t, 'click', this.onTriggerClick, this, {
+                                    preventDefault: true
+                                });
+                                t.addClassOnOver('x-form-trigger-over');
+                                t.addClassOnClick('x-form-trigger-click');
+                                break;
+                            case 1:
+                                this.mon(t, 'click', this.onTriggerClearClick, this, {
+                                    preventDefault: true
+                                });
+                                t.addClassOnOver('x-form-trigger-over');
+                                t.addClassOnClick('x-form-trigger-click');
+                                break;
+                        }
+                    }, this);
+                },
+                onTriggerClearClick: function() {
+                    this.clearValue();
+                },
+
+                //------------------------
+                // onTriggerClick: function (event) {
+                //     console.log(event.target.className);
+                //     var className = ' ' + event.target.className + ' ';
+                //     if (className.indexOf(' myTrigger2 ') >= 0) {
+                //         alert('Clicked 2');
+                //     } else if (className.indexOf(' myTrigger1 ') >= 0) {
+                //         Ext.form.ComboBox.superclass.onTriggerClick.apply(this, arguments);
+                //     }
+                //
+                // },
                 displayField: 'country',
                 valueField: 'country',
                 triggerAction: 'all',
@@ -140,6 +188,9 @@ Ext.onReady(function () {
                     var numberFrom = myFilter.getForm().findField('numberfiledConfirmedFrom').value;
                     var numberTo = myFilter.getForm().findField('numberfiledConfirmedTo').value;
 
+                    numberFrom = parseInt(numberFrom);
+                    numberTo = parseInt(numberTo);
+
                     store = myGrid.getStore();
 
                     store.filter([
@@ -151,24 +202,37 @@ Ext.onReady(function () {
                         // }
                         {
                             /**
-                             * 
-                             * @param {Ext.data.Record} record 
+                             *
+                             * @param {Ext.data.Record} record
                              */
                             fn: function (record) {
                                 let countryRecord = record.get('country');
                                 let confirmedRecord = record.get('confirmed');
 
-                                if (country === undefined) {
-                                    if (numberFrom < confirmedRecord && numberTo > confirmedRecord) { return true }
-                                    if (numberFrom < confirmedRecord || numberTo > confirmedRecord) { return true }
+
+                                if (Ext.isDefined(country) && country !== countryRecord) {
+                                    return false;
                                 }
-                                if (numberFrom === undefined || numberTo === undefined) {
-                                    if (numberFrom < confirmedRecord && country === countryRecord) { return true }
-                                    if (numberTo > confirmedRecord && country === countryRecord) { return true }
+                                if (Ext.isDefined(numberFrom) && numberFrom > confirmedRecord) {
+                                    return false;
                                 }
-                                if (numberTo === undefined && numberFrom === undefined) {
-                                    if (country === countryRecord) { return true }
+                                if (Ext.isDefined(numberTo) && numberTo < confirmedRecord) {
+                                    return false;
                                 }
+                                return true;
+
+
+                                // if (country === undefined) {
+                                //     if (numberFrom < confirmedRecord && numberTo > confirmedRecord) { return true }
+                                //     if (numberFrom < confirmedRecord || numberTo > confirmedRecord) { return true }
+                                // }
+                                // if (numberFrom === undefined || numberTo === undefined) {
+                                //     if (numberFrom < confirmedRecord && country === countryRecord) { return true }
+                                //     if (numberTo > confirmedRecord && country === countryRecord) { return true }
+                                // }
+                                // if (numberTo === undefined && numberFrom === undefined) {
+                                //     if (country === countryRecord) { return true }
+                                // }
                             },
                             scope: this
                         }
@@ -181,7 +245,7 @@ Ext.onReady(function () {
     var myGrid = Ext.create({
         xtype: 'grid',
         itemId: 'grid',
-        height: 560,
+        height: 350,
         store: myStore,
         stripeRows: true,
         stateful: true,
@@ -256,12 +320,10 @@ Ext.onReady(function () {
                     }
 
 
-
                 }
             }
         ]
     })
-
 
 
     var statistic = Ext.create({
@@ -309,7 +371,7 @@ Ext.onReady(function () {
         xtype: 'window',
         title: 'COVID-19 Statistic',
         width: 950,
-        height: 900,
+        autoHeight: true,
         layout: '',
         items: [
             myFilter,
