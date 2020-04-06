@@ -5,61 +5,68 @@ Ext.onReady(function () {
         autoLoad: true,
 
         proxy: new Ext.data.HttpProxy({
-            url: 'https://covid-19-coronavirus-statistics.p.rapidapi.com/v1/stats',
-            headers: {
-                "x-rapidapi-host": "covid-19-coronavirus-statistics.p.rapidapi.com",
-                "x-rapidapi-key": "8cd8d0f7bbmsh3c7897746993edfp13840ejsn40f673bcd163"
-            },
+            url: 'http://api.covid-19/php/index.php',
         }),
         root: function (json) {
-            return json.data.covid19Stats;
+            return json;
         },
         fields: [
             'country', 'province', 'city',
-            {name: 'lastUpdate', type: 'date'},
-            {name: 'confirmed', type: 'int'},
-            {name: 'deaths', type: 'int'},
-            {name: 'recovered', type: 'int'}
+            {
+                name: 'lastUpdate',
+                type: 'date'
+            },
+            {
+                name: 'confirmed',
+                type: 'int'
+            },
+            {
+                name: 'deaths',
+                type: 'int'
+            },
+            {
+                name: 'recovered',
+                type: 'int'
+            }
         ],
         sortInfo: {
             field: 'country',
             direction: 'ASC'
         },
-        listeners:
-            {
-                load: function () {
-                    console.log('Loaded', arguments);
+        listeners: {
+            load: function () {
+                console.log('Loaded', arguments);
 
-                    var store = myGrid.getStore().data.items;
-                    console.log(store);
+                var store = myGrid.getStore().data.items;
+                console.log(store);
 
-                    var confirmedSum = 0;
-                    var recoveredSum = 0;
-                    var deathsSum = 0;
-                    for (var index = 0; index < store.length; index++) {
-                        confirmedSum += store[index].data.confirmed;
-                        recoveredSum += store[index].data.recovered;
-                        deathsSum += store[index].data.deaths;
-                    }
-                    console.log('Confirmed', confirmedSum);
-                    console.log('Recovered', recoveredSum);
-                    console.log('Deaths', deathsSum);
-
-                    var mortalityDeathsRecovered = (100 * deathsSum / (deathsSum + recoveredSum)).toFixed(2)
-                    var mortalityDeathsRecoveredConfirmed = (100 * deathsSum / (deathsSum + recoveredSum + confirmedSum)).toFixed(2)
-
-
-                    statistic.getForm().setValues({
-                        confirmed: confirmedSum,
-                        recovered: recoveredSum,
-                        deaths: deathsSum,
-                        mortalityRec: mortalityDeathsRecovered + '%',
-                        mortalityRecConf: mortalityDeathsRecoveredConfirmed + '%',
-
-                    })
+                var confirmedSum = 0;
+                var recoveredSum = 0;
+                var deathsSum = 0;
+                for (var index = 0; index < store.length; index++) {
+                    confirmedSum += store[index].data.confirmed;
+                    recoveredSum += store[index].data.recovered;
+                    deathsSum += store[index].data.deaths;
                 }
-            },
-    })
+                console.log('Confirmed', confirmedSum);
+                console.log('Recovered', recoveredSum);
+                console.log('Deaths', deathsSum);
+
+                var mortalityDeathsRecovered = (100 * deathsSum / (deathsSum + recoveredSum)).toFixed(2);
+                var mortalityDeathsRecoveredConfirmed = (100 * deathsSum / (deathsSum + recoveredSum + confirmedSum)).toFixed(2);
+
+
+                statistic.getForm().setValues({
+                    confirmed: confirmedSum,
+                    recovered: recoveredSum,
+                    deaths: deathsSum,
+                    mortalityRec: mortalityDeathsRecovered + '%',
+                    mortalityRecConf: mortalityDeathsRecoveredConfirmed + '%',
+
+                });
+            }
+        },
+    });
 
 
     // Array store!!!
@@ -68,8 +75,7 @@ Ext.onReady(function () {
         itemId: 'filter',
         height: '100',
         padding: 5,
-        items: [
-            {
+        items: [{
                 xtype: 'combo',
                 name: 'combo',
                 fieldLabel: 'Country',
@@ -80,9 +86,22 @@ Ext.onReady(function () {
 
                 },
                 triggerConfig: {
-                    tag: 'span', cls: 'x-form-twin-triggers', cn: [
-                        {tag: "img", src: Ext.BLANK_IMAGE_URL, alt: "", cls: "x-form-trigger myTrigger1", index: 1},
-                        {tag: "img", src: Ext.BLANK_IMAGE_URL, alt: "", cls: "x-form-trigger myTrigger2", index: 2}
+                    tag: 'span',
+                    cls: 'x-form-twin-triggers',
+                    cn: [{
+                            tag: "img",
+                            src: Ext.BLANK_IMAGE_URL,
+                            alt: "",
+                            cls: "x-form-trigger my-img-trigger",
+                            index: 1
+                        },
+                        {
+                            tag: "img",
+                            src: Ext.BLANK_IMAGE_URL,
+                            alt: "",
+                            cls: "x-form-trigger",
+                            index: 2
+                        }
                     ],
 
                 },
@@ -112,7 +131,7 @@ Ext.onReady(function () {
                         }
                     }, this);
                 },
-                onTriggerClearClick: function() {
+                onTriggerClearClick: function () {
                     this.clearValue();
                 },
 
@@ -249,8 +268,7 @@ Ext.onReady(function () {
         store: myStore,
         stripeRows: true,
         stateful: true,
-        columns: [
-            {
+        columns: [{
                 id: 'country',
                 header: 'Country',
                 width: 100,
@@ -331,8 +349,7 @@ Ext.onReady(function () {
         layout: 'form',
         height: 180,
         padding: 5,
-        items: [
-            {
+        items: [{
                 xtype: 'displayfield',
                 name: 'confirmed',
                 fieldLabel: 'Confirmed',
@@ -378,8 +395,7 @@ Ext.onReady(function () {
             myGrid,
             statistic
         ],
-        buttons: [
-            {
+        buttons: [{
                 text: 'Reload store',
                 handler: function () {
                     myGrid.getStore().reload();
@@ -401,4 +417,3 @@ Ext.onReady(function () {
     win.show();
 
 });
-
